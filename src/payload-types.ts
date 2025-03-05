@@ -68,16 +68,22 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
-    'forum-posts': ForumPost;
+    'forum-threads': ForumThread;
+    'forum-replies': ForumReply;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    'forum-threads': {
+      replies: 'forum-replies';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
-    'forum-posts': ForumPostsSelect<false> | ForumPostsSelect<true>;
+    'forum-threads': ForumThreadsSelect<false> | ForumThreadsSelect<true>;
+    'forum-replies': ForumRepliesSelect<false> | ForumRepliesSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -152,16 +158,32 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "forum-posts".
+ * via the `definition` "forum-threads".
  */
-export interface ForumPost {
-  id: number;
+export interface ForumThread {
+  id: string;
   title: string;
   content?: string | null;
   createdBy?: string | null;
   channelId?: string | null;
   guildId?: string | null;
-  postId?: string | null;
+  createdAt: string;
+  replies?: {
+    docs?: (number | ForumReply)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forum-replies".
+ */
+export interface ForumReply {
+  id: number;
+  threadId: string | ForumThread;
+  content?: string | null;
+  createdBy?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -181,8 +203,12 @@ export interface PayloadLockedDocument {
         value: number | Media;
       } | null)
     | ({
-        relationTo: 'forum-posts';
-        value: number | ForumPost;
+        relationTo: 'forum-threads';
+        value: string | ForumThread;
+      } | null)
+    | ({
+        relationTo: 'forum-replies';
+        value: number | ForumReply;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -261,15 +287,27 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "forum-posts_select".
+ * via the `definition` "forum-threads_select".
  */
-export interface ForumPostsSelect<T extends boolean = true> {
+export interface ForumThreadsSelect<T extends boolean = true> {
+  id?: T;
   title?: T;
   content?: T;
   createdBy?: T;
   channelId?: T;
   guildId?: T;
-  postId?: T;
+  createdAt?: T;
+  replies?: T;
+  updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forum-replies_select".
+ */
+export interface ForumRepliesSelect<T extends boolean = true> {
+  threadId?: T;
+  content?: T;
+  createdBy?: T;
   createdAt?: T;
   updatedAt?: T;
 }
